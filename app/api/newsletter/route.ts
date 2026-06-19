@@ -40,20 +40,26 @@ export async function POST(request: Request) {
     `;
 
     // Email notification to the team via FormSubmit.
-    // Must be awaited — Vercel kills the execution context after the
-    // response is sent, so fire-and-forget fetches never complete.
     try {
-      await fetch('https://formsubmit.co/ajax/Yasser@getden.co.uk', {
+      const formRes = await fetch('https://formsubmit.co/ajax/Yasser@getden.co.uk', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'User-Agent': 'Den Newsletter',
+        },
         body: JSON.stringify({
           name,
           email,
           _subject: `New Den newsletter signup: ${name}`,
+          _captcha: 'false',
+          _template: 'table',
         }),
       });
-    } catch {
-      // FormSubmit failure should never block the user response.
+      const formData = await formRes.text();
+      console.log('FormSubmit response:', formRes.status, formData);
+    } catch (err) {
+      console.error('FormSubmit error:', err instanceof Error ? err.message : err);
     }
 
     return NextResponse.json({ ok: true });
